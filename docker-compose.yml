@@ -1,0 +1,69 @@
+version: '3'
+services:
+
+  #Laravel App
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hakase-labs/laravel
+    container_name: app_topflop
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    working_dir: /var/www/html
+    volumes:
+      - ./../:/var/www/html
+    networks:
+      - mynet
+ #Nginx Service
+  nginx:
+    image: nginx:latest
+    container_name: nginx_topflop
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "8080:80"
+      - "443:443"
+    volumes:
+      - ./../:/var/www/html
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+      - ./nginx/ssl/:/etc/nginx/ssl/
+    networks:
+      - mynet
+  #MySQL Service
+  db:
+    image: mysql:5.7
+    container_name: db_topflop
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: laraveldb
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravelpassworddb
+      MYSQL_ROOT_PASSWORD: rootpasswordmysql
+    volumes:
+      - mysqldata:/var/lib/mysql/
+    networks:
+      - mynet
+  #phpmyadmin
+  dbadmin_topflop:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpasswordmysql
+    ports:
+      - '142:80'
+    networks:
+      - mynet
+#Docker Networks
+networks:
+  mynet:
+    driver: bridge
+#Volumes
+volumes:
+  mysqldata:
+    driver: local
