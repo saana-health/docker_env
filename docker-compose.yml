@@ -1,54 +1,54 @@
 version: '3'
 services:
 
-  #Python
+#Python
   python:
     image: python:latest
     container_name: python_saana
     restart: unless-stopped
     tty: true
     ports:
-      - "8080:80"
-      - "443:443"
+      - "8002:8002"
     volumes:
-      - ./../:/var/www/html
-      - ./nginx/conf.d/:/etc/nginx/conf.d/
-      - ./nginx/ssl/:/etc/nginx/ssl/
+      - ./../Saana_devel:/usr/src/app
     networks:
       - mynet
- #Nginx Service
-  nginx:
-    image: nginx:latest
-    container_name: nginx_saana
-    restart: unless-stopped
-    tty: true
-    ports:
-      - "8080:80"
-      - "443:443"
-    volumes:
-      - ./../:/var/www/html
-      - ./nginx/conf.d/:/etc/nginx/conf.d/
-      - ./nginx/ssl/:/etc/nginx/ssl/
-    networks:
-      - mynet
-  #AngularApp
+#AngularApp
   angular:
     image: node:latest
-    container_name: angular_saana
+    container_name: angular_saana_front
     restart: unless-stopped
     tty: true
     ports:
-      - "8080:80"
+      - "8000:8000"
       - "443:443"
     tty: true
-      environment:
-        SERVICE_NAME: app
-        SERVICE_TAGS: dev
-      working_dir: /var/www/html
-      volumes:
-        - ./../:/var/www/html
-      networks:
-        - mynet
+    environment:
+      SERVICE_NAME: front
+      SERVICE_TAGS: dev
+    working_dir: /var/www/html
+    volumes:
+      - ./../sanaa_fronted:/var/www/html
+    networks:
+      - mynet
+#AngularApi
+  angular:
+    image: node:latest
+    container_name: angular_saana_api
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "8001:8001"
+      - "443:443"
+    tty: true
+    environment:
+      SERVICE_NAME: api
+      SERVICE_TAGS: dev
+    working_dir: /var/www/html
+    volumes:
+      - ./../saana_backend:/var/www/html
+    networks:
+      - mynet
   #Mongo
   mongo:
     image: mongo
@@ -59,12 +59,34 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
+    networks:
+      - mynet
+  dbsql:
+    image: 'mariadb:10.2'
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DOCKER_MYSQL_PASSWORD}"
+    ports:
+      - '21001:3306'
+    networks:
+      - mynet
+  dbadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      #      MYSQL_USER: 'root'
+      #      MYSQL_PASSWORD: 'root'
+      MYSQL_ROOT_PASSWORD: "${DOCKER_MYSQL_PASSWORD}"
+    links:
+      - dbsql:db
+    ports:
+      - '8142:80'
+    networks:
+      - mynet
 
-  #Docker Networks
-  networks:
-    mynet:
-      driver: bridge
-  #Volumes
-  volumes:
-    mysqldata:
-      driver: local
+#Docker Networks
+networks:
+  mynet:
+    driver: bridge
+#Volumes
+volumes:
+  mysqldata:
+    driver: local
