@@ -10,43 +10,36 @@ services:
     ports:
       - "8002:8002"
     volumes:
-      - ./../Saana_devel:/usr/src/app
+      - ./../Saana_devel/ :/usr/src/app
     networks:
       - mynet
 #AngularApp
-  angular:
+  angular_front:
     image: node:latest
     container_name: angular_saana_front
     restart: unless-stopped
     tty: true
     ports:
-      - "8000:8000"
+      - "8080:8080"
       - "443:443"
     tty: true
-    environment:
-      SERVICE_NAME: front
-      SERVICE_TAGS: dev
     working_dir: /var/www/html
     volumes:
-      - ./../sanaa_fronted:/var/www/html
+      - ./../saana-frontend:/var/www/html
     networks:
       - mynet
 #AngularApi
-  angular:
+  angular_api:
     image: node:latest
     container_name: angular_saana_api
     restart: unless-stopped
     tty: true
     ports:
       - "8001:8001"
-      - "443:443"
     tty: true
-    environment:
-      SERVICE_NAME: api
-      SERVICE_TAGS: dev
     working_dir: /var/www/html
     volumes:
-      - ./../saana_backend:/var/www/html
+      - ./../saana-backend:/var/www/html
     networks:
       - mynet
   #Mongo
@@ -62,7 +55,7 @@ services:
     networks:
       - mynet
   dbsql:
-    image: 'mariadb:10.2'
+    image: mariadb:latest
     environment:
       MYSQL_ROOT_PASSWORD: "${DOCKER_MYSQL_PASSWORD}"
     ports:
